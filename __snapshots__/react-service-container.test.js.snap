@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Injection Tokens 1`] = `
+<p>
+  Hello, world!
+</p>
+`;
