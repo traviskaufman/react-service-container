@@ -1,4 +1,4 @@
-import { ServiceContainer, useService } from "./lib";
+import { ServiceContainer, useService } from "../lib";
 import React from "react";
 import renderer from "react-test-renderer";
 
