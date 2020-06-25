@@ -5,3 +5,9 @@ exports[`Injection Tokens 1`] = `
   Hello, world!
 </p>
 `;
+
+exports[`useExisting with injection tokens 1`] = `
+<p>
+  value 1
+</p>
+`;

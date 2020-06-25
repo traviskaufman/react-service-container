@@ -1,4 +1,4 @@
-import { ServiceContainer, useService } from "../lib";
+import { ServiceContainer, useService, ServiceContainerContext } from "../lib";
 import React from "react";
 import renderer from "react-test-renderer";
 
@@ -91,11 +91,115 @@ test("Injection Tokens", () => {
   expect(component.toJSON()).toMatchSnapshot();
 });
 
-test.todo("useExisting with injection tokens");
+test("useExisting with injection tokens", () => {
+  const V1 = Symbol.for("v1");
+  const VALIAS = Symbol.for("vAlias");
+  const v1 = "value 1";
 
-test.todo("Hierarchal injection");
+  const Component = () => {
+    const v1 = useService(VALIAS);
+    return <p>{v1}</p>;
+  };
 
-test.todo("Class components");
+  const component = renderer.create(
+    <ServiceContainer
+      providers={[
+        { provide: V1, useValue: v1 },
+        { provide: VALIAS, useExisting: V1 },
+      ]}
+    >
+      <Component />
+    </ServiceContainer>
+  );
+  expect(component.toJSON()).toMatchSnapshot();
+});
+
+test("Hierarchal injection", () => {
+  const parentMock = jest.fn();
+  const childMock = jest.fn();
+  const overrideMock = jest.fn();
+  const mockToBeOverriden = jest.fn();
+
+  class ParentDep {
+    fn() {
+      parentMock();
+    }
+  }
+
+  class Child {
+    fn() {
+      childMock();
+    }
+  }
+
+  class DepToOverride {
+    fn() {
+      mockToBeOverriden();
+    }
+  }
+
+  class Override {
+    fn() {
+      overrideMock();
+    }
+  }
+
+  const Component = () => {
+    const parent = useService(ParentDep);
+    const child = useService(Child);
+    const override = useService(DepToOverride);
+
+    return (
+      <p>
+        {parent.fn()}
+        {child.fn()}
+        {override.fn()}
+      </p>
+    );
+  };
+
+  renderer.create(
+    <ServiceContainer providers={[ParentDep, DepToOverride]}>
+      <ServiceContainer
+        providers={[Child, { provide: DepToOverride, useClass: Override }]}
+      >
+        <Component />
+      </ServiceContainer>
+    </ServiceContainer>
+  );
+
+  expect(parentMock).toHaveBeenCalled();
+  expect(childMock).toHaveBeenCalled();
+  expect(overrideMock).toHaveBeenCalled();
+  expect(mockToBeOverriden).not.toHaveBeenCalled();
+});
+
+test("Class components", () => {
+  let mock = jest.fn();
+
+  class Dep {
+    fn() {
+      mock();
+    }
+  }
+
+  class Component extends React.Component {
+    render() {
+      const dep = this.context.get(Dep);
+      return <p>{dep.fn()}</p>;
+    }
+  }
+  Component.contextType = ServiceContainerContext;
+
+  renderer.create(
+    <ServiceContainer providers={[Dep]}>
+      <Component />
+    </ServiceContainer>
+  );
+  expect(mock).toHaveBeenCalled();
+});
+
+test.todo("Descriptive error message when useService cannot find context");
 
 test.todo("Descriptive error when missing provider");
 
