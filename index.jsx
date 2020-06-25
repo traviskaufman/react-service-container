@@ -9,9 +9,7 @@ ReactDOM.render(<App />, document.getElementById("root"));
 
 function App() {
   return (
-    <ServiceContainer
-      providers={[{ provide: GithubDAO, useValue: GithubDAO.getInstance() }]}
-    >
+    <ServiceContainer providers={[GithubDAO]}>
       <Repos />
     </ServiceContainer>
   );
