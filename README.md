@@ -72,12 +72,11 @@ test("renders a greeting", () => {
 });
 ```
 
-- Easy to use and set up
-- No annotations, reflect-metadata, etc. needed
-- Supports hierarchal dependency injection for lazy-loading and code splitting.
-- Built specifically for React. First-class support for hooks and component-based declarations.
-- Out-of-the-box TypeScript support
-- Fully tested with 100% code coverage (VERIFY)
+- [x] Dead simple to use. No annotations, reflect-metadata, etc. needed
+- [-] Idiomatically React. First-class support for hooks and components, includes react-style descriptive error messages.
+- [x] Supports hierarchal containers for lazy loading and code splitting.
+- [ ] First-class TypeScript support
+- [ ] Fully tested with 100% code coverage
 
 It's not really a DI library because it is only concerned with providing "non-components" to components.
 
