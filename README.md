@@ -76,6 +76,8 @@ test("renders a greeting", () => {
 - No annotations, reflect-metadata, etc. needed
 - Supports hierarchal dependency injection for lazy-loading and code splitting.
 - Built specifically for React. First-class support for hooks and component-based declarations.
+- Out-of-the-box TypeScript support
+- Fully tested with 100% code coverage (VERIFY)
 
 It's not really a DI library because it is only concerned with providing "non-components" to components.
 
@@ -126,9 +128,32 @@ export const CONFIG = Symbol.for("config");
 
 /** App.js */
 
-import CONFIG, config from './config';
+import CONFIG, config from "./config";
 
 function App() {
   return <ServiceContainer providers={[{provide: CONFIG, useValue: config}]}>{...}</ServiceContainer>
 }
 ```
+
+### Usage within class components
+
+```jsx
+/* Greeting.js */
+
+import React from "react";
+import { ServiceContainerContext } from "react-service-container";
+import Greeter from "./greeter";
+
+class MyComponent extends React.Component {
+  static contextType = ServiceContainerContext;
+
+  render() {
+    const greeter = this.context.get(Greeter);
+    return <p>{greeter.greet()}</p>;
+  }
+}
+```
+
+Service containers can be easily used without hooks in class components as well. Simply set
+the component's `contextType` property to `ServiceContainerContext` and use `this.context.get()`
+inside the render method or anywhere else that's needed.
