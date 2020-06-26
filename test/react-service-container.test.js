@@ -14,6 +14,13 @@ const Component = () => {
 let mock;
 beforeEach(() => {
   mock = jest.fn();
+  jest.spyOn(console, "error").mockImplementation();
+  jest.spyOn(console, "warn").mockImplementation();
+});
+
+afterEach(() => {
+  console.error.mockRestore();
+  console.warn.mockRestore();
 });
 
 test("useValue", () => {
@@ -174,6 +181,40 @@ test("Hierarchal injection", () => {
   expect(mockToBeOverriden).not.toHaveBeenCalled();
 });
 
+test("useExisting hierarchal override", () => {
+  const parentMock = jest.fn();
+  const childMock = jest.fn();
+
+  class ParentDep {
+    fn() {
+      parentMock();
+    }
+  }
+
+  class Child {
+    fn() {
+      childMock();
+    }
+  }
+
+  const Component = () => {
+    const dep = useService(Child);
+    return <p>{dep.fn()}</p>;
+  };
+
+  renderer.create(
+    <ServiceContainer providers={[ParentDep]}>
+      <ServiceContainer
+        providers={[{ provide: Child, useExisting: ParentDep }]}
+      >
+        <Component />
+      </ServiceContainer>
+    </ServiceContainer>
+  );
+  expect(parentMock).toHaveBeenCalled();
+  expect(childMock).not.toHaveBeenCalled();
+});
+
 test("Class components", () => {
   let mock = jest.fn();
 
@@ -199,15 +240,102 @@ test("Class components", () => {
   expect(mock).toHaveBeenCalled();
 });
 
-test.todo("Descriptive error message when useService cannot find context");
+test("Descriptive error message when useService cannot find context", () => {
+  const Component = () => {
+    const dep = useService(Dep);
+    return <p>{dep.fn()}</p>;
+  };
 
-test.todo("Descriptive error when missing provider");
+  expect(() => {
+    renderer.create(<Component />);
+  }).toThrow(
+    "Could not find service container context. It looks like you may have used the useService() hook " +
+      "in a component that is not a child of a <ServiceContainer>...</>. Take a look at your component tree " +
+      "and ensure that somewhere in the hierarchy before this component is rendered, there is a <ServiceContainer> " +
+      "available"
+  );
+});
 
-test.todo("Descriptive error when provider function throws");
+test("Descriptive error when missing provider", () => {
+  expect(() => {
+    renderer.create(
+      <ServiceContainer providers={[]}>
+        <Component />
+      </ServiceContainer>
+    );
+  }).toThrow('Think of this as a "missing variable" error');
+});
 
-test.todo("Descriptive error message when useExisting lookup fails");
+test("Descriptive error when provider function throws", () => {
+  const err = new Error("Provider error");
+  expect(() => {
+    renderer.create(
+      <ServiceContainer
+        providers={[
+          {
+            provide: Dep,
+            useFactory: () => {
+              throw err;
+            },
+          },
+        ]}
+      >
+        <Component />
+      </ServiceContainer>
+    );
+  }).toThrow(err);
+  expect(console.error).toHaveBeenCalledWith(
+    `[react-service-container] Provider for ${Dep} threw an error. Please check the error output below for more information.`
+  );
+});
 
-test.todo("Warn when overriding existing provider (in development?)");
+test("Descriptive error message when useExisting lookup fails", () => {
+  const ALIAS = Symbol.for("alias");
+  const Component = () => {
+    const dep = useService(ALIAS);
+    return <p>{dep.fn()}</p>;
+  };
+
+  expect(() => {
+    renderer.create(
+      <ServiceContainer providers={[{ provide: ALIAS, useExisting: Dep }]}>
+        <Component />
+      </ServiceContainer>
+    );
+  }).toThrow(
+    "It looks like you passed a token to `useExisting` that was not registered as a provider. " +
+      "Ensure that the token given is registered *before* the alias is referenced. If the value reference by " +
+      "the alias is provided within the same providers array as the alias, ensure that it comes before the alias " +
+      "in the providers array."
+  );
+});
+
+test("Descriptive error when provider is malformed", () => {
+  // Missing provide
+  const noProvideKey = { foo: "bar" };
+  expect(() => {
+    renderer.create(
+      <ServiceContainer providers={[noProvideKey]}>
+        <Component />
+      </ServiceContainer>
+    );
+  }).toThrow(
+    `[react-service-container] Missing "provide" key in object with key(s): "foo". Each provider must specify a "provide" key as well as one of the correct use* values.`
+  );
+
+  // Missing correct value to go with provide
+  const wrongUseKey = { provide: Dep, useCls: Dep };
+  expect(() => {
+    renderer.create(
+      <ServiceContainer providers={[wrongUseKey]}>
+        <Component />
+      </ServiceContainer>
+    );
+  }).toThrow(
+    '[create-service-container] Provider missing proper use* value in key(s): "useCls". ' +
+      'Possible values are: ["useValue", "useClass", "useFactory", "useExisting"]'
+  );
+});
 
 function renderWithProviders(providers) {
   return renderer.create(
