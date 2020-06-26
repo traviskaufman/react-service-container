@@ -73,10 +73,10 @@ test("renders a greeting", () => {
 ```
 
 - [x] Dead simple to use. No annotations, reflect-metadata, etc. needed
-- [-] Idiomatically React. First-class support for hooks and components, includes react-style descriptive error messages.
+- [x] Idiomatically React. First-class support for hooks and components, includes react-style descriptive error messages.
 - [x] Supports hierarchal containers for lazy loading and code splitting.
 - [ ] First-class TypeScript support
-- [ ] Fully tested with 100% code coverage
+- [x] Fully tested with 100% code coverage
 
 It's not really a DI library because it is only concerned with providing "non-components" to components.
 
