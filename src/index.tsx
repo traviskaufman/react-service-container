@@ -1,12 +1,43 @@
 import React, { useContext } from "react";
 
+export interface UseValueProvider {
+  provide: any;
+  useValue: any;
+}
+
+export interface UseClassProvider {
+  provide: any;
+  useClass: new (...args: any) => any;
+}
+
+export interface UseFactoryProvider {
+  provide: any;
+  useFactory(): any;
+}
+
+export interface UseExistingProvider {
+  provide: any;
+  useExisting(): any;
+}
+
+export type Provider =
+  | (new (...args: any) => any)
+  | UseValueProvider
+  | UseClassProvider
+  | UseFactoryProvider
+  | UseExistingProvider;
+
 export class ServiceContainerRegistry {
-  constructor(parent) {
+  private providers = new Map<any, any>();
+
+  constructor(
+    private readonly parent: ServiceContainerRegistryReadonlyProxy | null
+  ) {
     this.parent = parent;
     this.providers = new Map();
   }
 
-  get(serviceToken) {
+  get<T>(serviceToken: any): T {
     if (this.providers.has(serviceToken)) {
       const initFn = this.providers.get(serviceToken);
       try {
@@ -37,7 +68,7 @@ export class ServiceContainerRegistry {
     throw new Error(errorMsg);
   }
 
-  add(provider) {
+  add<T>(provider: Provider) {
     if (!("provide" in provider)) {
       const errorMsg =
         `[react-service-container] Missing "provide" key in object with key(s): ${stringifyKeys(
@@ -50,18 +81,18 @@ export class ServiceContainerRegistry {
     let initFn;
     switch (true) {
       case "useValue" in provider:
-        const value = provider.useValue;
+        const value = (provider as UseValueProvider).useValue;
         initFn = () => value;
         break;
       case "useClass" in provider:
-        const Ctor = provider.useClass;
+        const Ctor = (provider as UseClassProvider).useClass;
         initFn = () => new Ctor();
         break;
       case "useFactory" in provider:
-        initFn = provider.useFactory;
+        initFn = (provider as UseFactoryProvider).useFactory;
         break;
       case "useExisting" in provider:
-        const resolvedAlias = provider.useExisting;
+        const resolvedAlias = (provider as UseExistingProvider).useExisting;
         initFn = () => {
           try {
             return this.get(resolvedAlias);
@@ -92,9 +123,23 @@ export class ServiceContainerRegistry {
   }
 }
 
-export const ServiceContainerContext = React.createContext(null);
+export type ServiceContainerRegistryReadonlyProxy = Pick<
+  ServiceContainerRegistry,
+  "get"
+>;
 
-export function ServiceContainer({ providers, children }) {
+export const ServiceContainerContext = React.createContext<ServiceContainerRegistryReadonlyProxy | null>(
+  null
+);
+
+export type ServiceContainerProps = React.PropsWithChildren<{
+  providers: Provider[];
+}>;
+
+export function ServiceContainer({
+  providers,
+  children,
+}: ServiceContainerProps) {
   const parent = useContext(ServiceContainerContext);
   const registry = buildRegistry(providers, parent);
 
@@ -105,7 +150,7 @@ export function ServiceContainer({ providers, children }) {
   );
 }
 
-export function useService(serviceToken) {
+export function useService<T>(serviceToken: any) {
   const container = useContext(ServiceContainerContext);
   if (!container) {
     const errorMsg =
@@ -115,41 +160,49 @@ export function useService(serviceToken) {
       "available";
     throw new Error(errorMsg);
   }
-  return container.get(serviceToken);
+  return container.get<T>(serviceToken);
 }
 
-function readonlyProxy(registry) {
+function readonlyProxy(
+  registry: ServiceContainerRegistry
+): ServiceContainerRegistryReadonlyProxy {
   const proxy = {
-    get(...args) {
-      return registry.get(...args);
+    get<T>(serviceToken: any): T {
+      return registry.get<T>(serviceToken);
     },
   };
   return proxy;
 }
 
-function buildRegistry(providers, parent) {
+function buildRegistry(
+  providers: Provider[],
+  parent: ServiceContainerRegistryReadonlyProxy | null
+) {
   const registry = new ServiceContainerRegistry(parent);
   addProviders(registry, providers);
   return registry;
 }
 
-function addProviders(registry, providers) {
+function addProviders(
+  registry: ServiceContainerRegistry,
+  providers: Provider[]
+) {
   normalize(providers).forEach((provider) => {
     registry.add(provider);
   });
 }
 
-function normalize(providers) {
+function normalize(providers: Provider[]): Provider[] {
   return providers.map((provider) => {
     const assumeClassShorthand = typeof provider === "function";
     if (assumeClassShorthand) {
-      return { provide: provider, useClass: provider };
+      return { provide: provider, useClass: provider } as Provider;
     }
     return provider;
   });
 }
 
-function stringifyKeys(obj, filter = () => true) {
+function stringifyKeys(obj: {}, filter = (k: string) => true) {
   return Object.keys(obj)
     .filter(filter)
     .map((k) => `"${k}"`)

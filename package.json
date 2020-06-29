@@ -1,28 +1,32 @@
 {
   "name": "react-service-container",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "dev": "parcel index.html",
+    "pretest": "npm run build",
     "test": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "build": "tsc",
+    "prepublish": "npm run build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.10.3",
-    "@babel/preset-env": "^7.10.3",
-    "@babel/preset-react": "^7.10.1",
-    "babel-jest": "^26.1.0",
-    "babel-preset-env": "^1.7.0",
+    "@types/jest": "^26.0.3",
+    "@types/react": "^16.9.41",
+    "@types/react-test-renderer": "^16.9.2",
     "jest": "^26.1.0",
     "parcel": "^1.12.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-test-renderer": "^16.13.1",
-    "regenerator-runtime": "^0.13.5"
+    "regenerator-runtime": "^0.13.5",
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.9.5"
   },
   "browserslist": "> 0.25%, not dead",
   "jest": {
