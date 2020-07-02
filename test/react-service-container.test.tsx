@@ -1,9 +1,16 @@
-import { ServiceContainer, useService, ServiceContainerContext } from "../";
 import React from "react";
 import renderer from "react-test-renderer";
+import {
+  Provider,
+  ServiceContainer,
+  ServiceContainerContext,
+  useService,
+} from "../src/index";
 
 class Dep {
-  fn() {}
+  fn() {
+    return "Output!";
+  }
 }
 
 const Component = () => {
@@ -11,7 +18,7 @@ const Component = () => {
   return <p>{dep.fn()}</p>;
 };
 
-let mock;
+let mock: jest.Mock;
 beforeEach(() => {
   mock = jest.fn();
   jest.spyOn(console, "error").mockImplementation();
@@ -19,8 +26,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  console.error.mockRestore();
-  console.warn.mockRestore();
+  (console.error as jest.Mock).mockRestore();
+  (console.warn as jest.Mock).mockRestore();
 });
 
 test("useValue", () => {
@@ -65,7 +72,7 @@ test("useExisting", () => {
 test("Class shorthand", () => {
   class MockDep {
     fn() {
-      mock();
+      return mock();
     }
   }
 
@@ -187,13 +194,13 @@ test("useExisting hierarchal override", () => {
 
   class ParentDep {
     fn() {
-      parentMock();
+      return parentMock();
     }
   }
 
   class Child {
     fn() {
-      childMock();
+      return childMock();
     }
   }
 
@@ -220,17 +227,18 @@ test("Class components", () => {
 
   class Dep {
     fn() {
-      mock();
+      return mock();
     }
   }
 
   class Component extends React.Component {
+    static contextType = ServiceContainerContext;
+
     render() {
       const dep = this.context.get(Dep);
       return <p>{dep.fn()}</p>;
     }
   }
-  Component.contextType = ServiceContainerContext;
 
   renderer.create(
     <ServiceContainer providers={[Dep]}>
@@ -315,7 +323,7 @@ test("Descriptive error when provider is malformed", () => {
   const noProvideKey = { foo: "bar" };
   expect(() => {
     renderer.create(
-      <ServiceContainer providers={[noProvideKey]}>
+      <ServiceContainer providers={[noProvideKey as any]}>
         <Component />
       </ServiceContainer>
     );
@@ -327,7 +335,7 @@ test("Descriptive error when provider is malformed", () => {
   const wrongUseKey = { provide: Dep, useCls: Dep };
   expect(() => {
     renderer.create(
-      <ServiceContainer providers={[wrongUseKey]}>
+      <ServiceContainer providers={[wrongUseKey as any]}>
         <Component />
       </ServiceContainer>
     );
@@ -337,7 +345,7 @@ test("Descriptive error when provider is malformed", () => {
   );
 });
 
-function renderWithProviders(providers) {
+function renderWithProviders(providers: Provider<any>[]) {
   return renderer.create(
     <ServiceContainer providers={providers}>
       <Component />

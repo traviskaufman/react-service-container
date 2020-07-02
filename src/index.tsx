@@ -1,31 +1,35 @@
 import React, { useContext } from "react";
 
-export interface UseValueProvider {
-  provide: any;
-  useValue: any;
+export type ServiceFor<T> = T extends new (...args: any[]) => infer R ? R : any;
+
+export interface UseValueProvider<T> {
+  provide: T;
+  useValue: ServiceFor<T>;
 }
 
-export interface UseClassProvider {
-  provide: any;
-  useClass: new (...args: any) => any;
+export interface UseClassProvider<T> {
+  provide: T;
+  useClass: new (...args: any) => ServiceFor<T>;
 }
 
-export interface UseFactoryProvider {
-  provide: any;
-  useFactory(): any;
+export interface UseFactoryProvider<T> {
+  provide: T;
+  useFactory(): ServiceFor<T>;
 }
 
-export interface UseExistingProvider {
-  provide: any;
-  useExisting(): any;
+export interface UseExistingProvider<T, R = T> {
+  provide: T;
+  useExisting: R;
 }
 
-export type Provider =
-  | (new (...args: any) => any)
-  | UseValueProvider
-  | UseClassProvider
-  | UseFactoryProvider
-  | UseExistingProvider;
+export type Provider<T> =
+  | (new (...args: any[]) => any)
+  | UseValueProvider<T>
+  | UseClassProvider<T>
+  | UseFactoryProvider<T>
+  | UseExistingProvider<T>;
+
+export type Providers = Array<Provider<any>>;
 
 export class ServiceContainerRegistry {
   private providers = new Map<any, any>();
@@ -37,9 +41,9 @@ export class ServiceContainerRegistry {
     this.providers = new Map();
   }
 
-  get<T>(serviceToken: any): T {
+  get<T>(serviceToken: T): ServiceFor<T> {
     if (this.providers.has(serviceToken)) {
-      const initFn = this.providers.get(serviceToken);
+      const initFn = this.providers.get(serviceToken) as () => ServiceFor<T>;
       try {
         return initFn();
       } catch (err) {
@@ -68,7 +72,7 @@ export class ServiceContainerRegistry {
     throw new Error(errorMsg);
   }
 
-  add<T>(provider: Provider) {
+  add<T>(provider: Provider<T>) {
     if (!("provide" in provider)) {
       const errorMsg =
         `[react-service-container] Missing "provide" key in object with key(s): ${stringifyKeys(
@@ -81,18 +85,18 @@ export class ServiceContainerRegistry {
     let initFn;
     switch (true) {
       case "useValue" in provider:
-        const value = (provider as UseValueProvider).useValue;
+        const value = (provider as UseValueProvider<T>).useValue;
         initFn = () => value;
         break;
       case "useClass" in provider:
-        const Ctor = (provider as UseClassProvider).useClass;
+        const Ctor = (provider as UseClassProvider<T>).useClass;
         initFn = () => new Ctor();
         break;
       case "useFactory" in provider:
-        initFn = (provider as UseFactoryProvider).useFactory;
+        initFn = (provider as UseFactoryProvider<T>).useFactory;
         break;
       case "useExisting" in provider:
-        const resolvedAlias = (provider as UseExistingProvider).useExisting;
+        const resolvedAlias = (provider as UseExistingProvider<T>).useExisting;
         initFn = () => {
           try {
             return this.get(resolvedAlias);
@@ -119,7 +123,7 @@ export class ServiceContainerRegistry {
         throw new Error(errorMsg);
     }
 
-    this.providers.set(provider.provide, initFn);
+    this.providers.set((provider as any).provide, initFn);
   }
 }
 
@@ -133,7 +137,7 @@ export const ServiceContainerContext = React.createContext<ServiceContainerRegis
 );
 
 export type ServiceContainerProps = React.PropsWithChildren<{
-  providers: Provider[];
+  providers: Providers;
 }>;
 
 export function ServiceContainer({
@@ -150,7 +154,7 @@ export function ServiceContainer({
   );
 }
 
-export function useService<T>(serviceToken: any) {
+export function useService<T>(serviceToken: T): ServiceFor<T> {
   const container = useContext(ServiceContainerContext);
   if (!container) {
     const errorMsg =
@@ -167,7 +171,7 @@ function readonlyProxy(
   registry: ServiceContainerRegistry
 ): ServiceContainerRegistryReadonlyProxy {
   const proxy = {
-    get<T>(serviceToken: any): T {
+    get<T>(serviceToken: any): ServiceFor<T> {
       return registry.get<T>(serviceToken);
     },
   };
@@ -175,7 +179,7 @@ function readonlyProxy(
 }
 
 function buildRegistry(
-  providers: Provider[],
+  providers: Providers,
   parent: ServiceContainerRegistryReadonlyProxy | null
 ) {
   const registry = new ServiceContainerRegistry(parent);
@@ -185,18 +189,21 @@ function buildRegistry(
 
 function addProviders(
   registry: ServiceContainerRegistry,
-  providers: Provider[]
+  providers: Providers
 ) {
   normalize(providers).forEach((provider) => {
     registry.add(provider);
   });
 }
 
-function normalize(providers: Provider[]): Provider[] {
+function normalize(providers: Providers): Providers {
   return providers.map((provider) => {
     const assumeClassShorthand = typeof provider === "function";
     if (assumeClassShorthand) {
-      return { provide: provider, useClass: provider } as Provider;
+      return {
+        provide: provider,
+        useClass: provider as UseClassProvider<any>["useClass"],
+      };
     }
     return provider;
   });

@@ -6,7 +6,6 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "dev": "parcel index.html",
-    "pretest": "npm run build",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "build": "tsc",
@@ -36,6 +35,11 @@
         "functions": 100,
         "lines": 100,
         "statements": 100
+      }
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.test.json"
       }
     }
   }
