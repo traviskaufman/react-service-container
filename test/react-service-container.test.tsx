@@ -110,8 +110,10 @@ test("useExisting with injection tokens", () => {
   const VALIAS = Symbol.for("vAlias");
   const v1 = "value 1";
 
+  const useV1 = () => useService(VALIAS) as string;
+
   const Component = () => {
-    const v1 = useService(VALIAS);
+    const v1 = useV1();
     return <p>{v1}</p>;
   };
 

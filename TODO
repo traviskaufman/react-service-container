@@ -1,5 +1,5 @@
 - [x] Typescript
 - [ ] Tidy up README
+- [ ] CI Setup (linting / testing / etc)
 - [ ] Distribution and publishing
-- [ ] CI Setup
 - [ ] Examples (P2)

@@ -41,9 +41,9 @@ export class ServiceContainerRegistry {
     this.providers = new Map();
   }
 
-  get<T>(serviceToken: T): ServiceFor<T> {
+  get<T, R = ServiceFor<T>>(serviceToken: T): R {
     if (this.providers.has(serviceToken)) {
-      const initFn = this.providers.get(serviceToken) as () => ServiceFor<T>;
+      const initFn = this.providers.get(serviceToken) as () => R;
       try {
         return initFn();
       } catch (err) {
@@ -154,7 +154,7 @@ export function ServiceContainer({
   );
 }
 
-export function useService<T>(serviceToken: T): ServiceFor<T> {
+export function useService<T, R = ServiceFor<T>>(serviceToken: T): R {
   const container = useContext(ServiceContainerContext);
   if (!container) {
     const errorMsg =
@@ -164,7 +164,7 @@ export function useService<T>(serviceToken: T): ServiceFor<T> {
       "available";
     throw new Error(errorMsg);
   }
-  return container.get<T>(serviceToken);
+  return container.get<T, R>(serviceToken);
 }
 
 function readonlyProxy(
