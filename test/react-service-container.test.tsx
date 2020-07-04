@@ -90,11 +90,17 @@ test("Class shorthand", () => {
 });
 
 test("Injection Tokens", () => {
+  interface Config {
+    message: string;
+  }
+
   const CONFIG = Symbol.for("config");
-  const config = { message: "Hello, world!" };
+  const config: Config = { message: "Hello, world!" };
+
+  const useConfig = () => useService(CONFIG) as Config;
 
   const Component = () => {
-    const { message } = useService(CONFIG);
+    const { message } = useConfig();
     return <p>{message}</p>;
   };
   const component = renderer.create(
