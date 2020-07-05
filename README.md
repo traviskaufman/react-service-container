@@ -1,8 +1,9 @@
 # react-service-container
 
-Simple, robust, idiomatic service locator (?) library for react applications.
+react-service-container is a library which helps your components get the services they need in an
+easy, clean, and testable manner.
 
-Just define a service...
+Simply define a service
 
 ```jsx
 // greeter.js
@@ -14,7 +15,7 @@ export default class Greeter {
 }
 ```
 
-Provide it within a container...
+provide it within a `ServiceContainer`
 
 ```jsx
 // App.js
@@ -32,7 +33,7 @@ export default function App() {
 }
 ```
 
-...and use it within your components
+and use it within your components:
 
 ```jsx
 // Greeting.js
@@ -46,7 +47,7 @@ export default function Greeting() {
 }
 ```
 
-Testing your components is also a breeze:
+Testing your components is now a breeze:
 
 ```jsx
 import React from "react";
@@ -72,16 +73,17 @@ test("renders a greeting", () => {
 });
 ```
 
+The library is based off of the [Service Locator](https://martinfowler.com/articles/injection.html#UsingAServiceLocator) pattern, and the API is inspired by [apollo-client](https://github.com/apollographql/apollo-client).
+
+### Features
+
 - [x] Dead simple to use. No annotations, reflect-metadata, etc. needed
-- [x] Idiomatically React. First-class support for hooks and components, includes react-style descriptive error messages.
+- [x] Idiomatically React. First-class support for hooks and components. Includes react-style descriptive error messages.
 - [x] Supports hierarchal containers for lazy loading and code splitting.
 - [x] First-class TypeScript support
 - [x] Fully tested with 100% code coverage
 
 It's not really a DI library because it is only concerned with providing "non-components" to components.
-
-Based off of the [Service Locator](https://martinfowler.com/articles/injection.html#UsingAServiceLocator) pattern,
-inspired by [apollo-client]().
 
 ### Motivation
 
