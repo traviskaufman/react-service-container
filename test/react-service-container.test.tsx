@@ -5,7 +5,7 @@ import {
   ServiceContainer,
   ServiceContainerContext,
   useService,
-} from "../src/index";
+} from "../";
 
 class Dep {
   fn() {
