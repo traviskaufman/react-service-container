@@ -1,7 +1,7 @@
 # react-service-container
 
-react-service-container is a library which helps your components get the services they need in an
-easy, clean, and testable manner.
+react-service-container is a library which helps provide services to your components and hooks
+in an easy, clean, and testable manner.
 
 Simply define a service
 
