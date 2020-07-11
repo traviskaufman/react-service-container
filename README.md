@@ -73,6 +73,8 @@ test("renders a greeting", () => {
 });
 ```
 
+[View a working example of the above code](https://codesandbox.io/s/simple-example-00drq)
+
 The library is based off of the [Service Locator](https://martinfowler.com/articles/injection.html#UsingAServiceLocator) pattern, and the API is inspired by [apollo-client](https://github.com/apollographql/apollo-client).
 
 ### Features
