@@ -1,3 +1,6 @@
-examples/
-TODO
-!umd/
+*
+!package*.json
+!lib/*
+!umd/*
+!LICENSE.md
+!README.md
