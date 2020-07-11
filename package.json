@@ -10,6 +10,7 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "dev": "parcel index.html",
+    "pretest": "npm run build",
     "test": "jest --coverage --config jest.config.js",
     "test:watch": "jest --watch --config jest.config.js",
     "build:lib": "tsc",
