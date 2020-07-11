@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
 
+const UNINSTANTIATED = Symbol.for("uninstantiated");
+
 export type ServiceFor<T> = T extends new (...args: any[]) => infer R ? R : any;
 
 export interface UseValueProvider<T> {
@@ -82,46 +84,57 @@ export class ServiceContainerRegistry {
       throw new Error(errorMsg);
     }
 
-    let initFn;
-    switch (true) {
-      case "useValue" in provider:
-        const value = (provider as UseValueProvider<T>).useValue;
-        initFn = () => value;
-        break;
-      case "useClass" in provider:
-        const Ctor = (provider as UseClassProvider<T>).useClass;
-        initFn = () => new Ctor();
-        break;
-      case "useFactory" in provider:
-        initFn = (provider as UseFactoryProvider<T>).useFactory;
-        break;
-      case "useExisting" in provider:
-        const resolvedAlias = (provider as UseExistingProvider<T>).useExisting;
-        initFn = () => {
-          try {
-            return this.get(resolvedAlias);
-          } catch (_) {
-            const errorMessage =
-              `[react-service-container] Failed alias lookup for useExisting provider ${String(
-                provider
-              )}. ` +
-              "It looks like you passed a token to `useExisting` that was not registered as a provider. " +
-              "Ensure that the token given is registered *before* the alias is referenced. " +
-              "If the value reference by the alias is provided within the same providers array as the alias, " +
-              "ensure that it comes before the alias in the providers array.";
-            throw new Error(errorMessage);
-          }
-        };
-        break;
-      default:
-        const errorMsg =
-          `[create-service-container] Provider missing proper use* value in key(s): ${stringifyKeys(
-            provider,
-            (k) => k !== "provide"
-          )}. ` +
-          'Possible values are: ["useValue", "useClass", "useFactory", "useExisting"]';
-        throw new Error(errorMsg);
-    }
+    let instance: ServiceFor<T> = UNINSTANTIATED as any;
+    const initFn = () => {
+      if (instance !== UNINSTANTIATED) {
+        return instance;
+      }
+
+      let init;
+      switch (true) {
+        case "useValue" in provider:
+          const value = (provider as UseValueProvider<T>).useValue;
+          init = () => value;
+          break;
+        case "useClass" in provider:
+          const Ctor = (provider as UseClassProvider<T>).useClass;
+          init = () => new Ctor();
+          break;
+        case "useFactory" in provider:
+          init = (provider as UseFactoryProvider<T>).useFactory;
+          break;
+        case "useExisting" in provider:
+          const resolvedAlias = (provider as UseExistingProvider<T>)
+            .useExisting;
+          init = () => {
+            try {
+              return this.get(resolvedAlias);
+            } catch (_) {
+              const errorMessage =
+                `[react-service-container] Failed alias lookup for useExisting provider ${String(
+                  provider
+                )}. ` +
+                "It looks like you passed a token to `useExisting` that was not registered as a provider. " +
+                "Ensure that the token given is registered *before* the alias is referenced. " +
+                "If the value reference by the alias is provided within the same providers array as the alias, " +
+                "ensure that it comes before the alias in the providers array.";
+              throw new Error(errorMessage);
+            }
+          };
+          break;
+        default:
+          const errorMsg =
+            `[create-service-container] Provider missing proper use* value in key(s): ${stringifyKeys(
+              provider,
+              (k) => k !== "provide"
+            )}. ` +
+            'Possible values are: ["useValue", "useClass", "useFactory", "useExisting"]';
+          throw new Error(errorMsg);
+      }
+
+      instance = init();
+      return instance;
+    };
 
     this.providers.set((provider as any).provide, initFn);
   }

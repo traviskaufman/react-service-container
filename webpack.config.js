@@ -3,13 +3,22 @@ const fileName = require("./package.json").name;
 const { merge } = require("webpack-merge");
 
 const common = {
-  entry: "./lib/index.tsx",
+  entry: "./src/index.tsx",
   devtool: "source-map",
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: [
+          {
+            loader: "ts-loader",
+            options: {
+              compilerOptions: {
+                declaration: false,
+              },
+            },
+          },
+        ],
         exclude: /node_modules/,
       },
     ],

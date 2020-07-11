@@ -5,7 +5,7 @@ import {
   ServiceContainer,
   ServiceContainerContext,
   useService,
-} from "../";
+} from "../src";
 
 class Dep {
   fn() {
@@ -351,6 +351,17 @@ test("Descriptive error when provider is malformed", () => {
     '[create-service-container] Provider missing proper use* value in key(s): "useCls". ' +
       'Possible values are: ["useValue", "useClass", "useFactory", "useExisting"]'
   );
+});
+
+test("only instantiates services once", () => {
+  const mockFactory = jest.fn().mockImplementation(() => new Dep());
+  renderer.create(
+    <ServiceContainer providers={[{ provide: Dep, useFactory: mockFactory }]}>
+      <Component />
+      <Component />
+    </ServiceContainer>
+  );
+  expect(mockFactory).toHaveBeenCalledTimes(1);
 });
 
 function renderWithProviders(providers: Provider<any>[]) {

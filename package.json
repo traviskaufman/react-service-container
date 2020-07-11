@@ -7,10 +7,11 @@
     "url": "https://github.com/traviskaufman/react-service-container.git"
   },
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "dev": "parcel index.html",
-    "test": "jest --coverage",
-    "test:watch": "jest --watch",
+    "test": "jest --coverage --config jest.config.js",
+    "test:watch": "jest --watch --config jest.config.js",
     "build:lib": "tsc",
     "build:dist": "webpack --config webpack.config.js && webpack --config webpack.config.js --env production",
     "build": "npm run build:lib && npm run build:dist",
