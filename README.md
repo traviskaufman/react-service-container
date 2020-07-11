@@ -112,6 +112,18 @@ This of course is just my personal opinion :smiley:
 npm i -S react-service-container
 ```
 
+### UMD Builds
+
+UMD builds can be found in the npm package's `umd/` folder, containing both development (`react-service-container.js`)
+and production (`react-service-container.min.js`) builds. Source maps are included in the folder.
+
+If you'd like to include react-service-container using a `<script>` tag, you can use [unpkg](https://unpkg.com/) to
+do so.
+
+```html
+<script src="https://unpkg.com/react-service-container/umd/react-service-container.min.js"></script>
+```
+
 ## Usage
 
 ### Providing services
