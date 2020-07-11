@@ -1,5 +1,7 @@
 # react-service-container
 
+[![Build Status](https://travis-ci.org/traviskaufman/react-service-container.svg?branch=master)](https://travis-ci.org/traviskaufman/react-service-container)
+
 react-service-container is a library which helps provide services to your components and hooks
 in an easy, clean, and testable manner.
 

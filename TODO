@@ -2,7 +2,7 @@
 - [x] Tidy up README
   - [x] TypeScript usage / tips
   - [x] Rewrite each section
-- [ ] CI Setup (linting / testing / etc)
+- [x] CI Setup (linting / testing / etc)
 - [x] Distribution and publishing
   - Source maps, and minification
 - [-] Examples (P2)
