@@ -11,28 +11,41 @@
     "dev": "parcel index.html",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "tsc",
+    "build:lib": "tsc",
+    "build:dist": "webpack --config webpack.config.js && webpack --config webpack.config.js --env production",
+    "build": "npm run build:lib && npm run build:dist",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "react",
+    "dependency-injection",
+    "service-container",
+    "provider",
+    "di",
+    "service-locator"
+  ],
   "author": "Travis Kaufman <travis.kaufman@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react": "^16.13.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.3",
     "@types/react": "^16.9.41",
     "@types/react-test-renderer": "^16.9.2",
     "jest": "^26.1.0",
-    "parcel": "^1.12.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-test-renderer": "^16.13.1",
     "regenerator-runtime": "^0.13.5",
+    "rollup": "^2.21.0",
     "ts-jest": "^26.1.1",
-    "typescript": "^3.9.5"
+    "ts-loader": "^8.0.0",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-merge": "^5.0.9"
   },
   "browserslist": "> 0.25%, not dead",
   "jest": {

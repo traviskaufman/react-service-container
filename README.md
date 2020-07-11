@@ -451,3 +451,7 @@ export default function Component() {
   // render component using config, which is now correctly typed.
 }
 ```
+
+# License
+
+MIT
