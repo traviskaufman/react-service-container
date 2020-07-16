@@ -92,23 +92,108 @@ is to provide components with services.
 
 ### Motivation
 
-Many react codebases I've worked on have a structure such that each page constitutes a piece of self-contained
-functionality, for example listing resources, editing a specific resource, or dealing with user settings (
-this for example is common in "Admin" UIs). For apps like these, I find libraries like [Redux](https://redux.js.org/)
-add a lot of boilerplate and indirection while not providing as much mileage as say, a more fully-featured
-and complex single-page application.
+When developing React applications, I find that using [Context](https://reactjs.org/docs/context.html) together with [Custom Hooks](https://reactjs.org/docs/hooks-custom.html) provides a really clean and powerful way to inject services into components. For example, if I have a `Greeter` service, such as I used in the example above,
+I could write something like this:
 
-I began looking into Apollo in order for a Redux replacement, but for many applications, especially legacy ones,
-using something like GraphQL is infeasible, and even using something like [apollo-rest-client](https://www.apollographql.com/docs/link/links/rest/) is limiting in that you can only use it for data transfer.
+```jsx
+// greeter.js
+import { createContext, useContext } from "react";
 
-However, I really loved the idiom of using providers and hooks in order to get a "handle" to a service (e.g. `useQuery()` / `useMutation()` from Apollo), and wanted to try and generalize this concept for generic services. This turned
-out to work well for my use cases, and hence `react-service-container` was born.
+export default class Greeter {
+  greet() {
+    // ...
+  }
+}
 
-Once I started using it, I realized I also preferred providing service mocks in tests explicitly vs. using Jest's
-[module mocking](https://jestjs.io/docs/en/mock-functions#mocking-modules). I find that explicitly specifying the services my components rely upon make me less likely to
-mock out implementation details and draw clear boundaries around separation of concern. I also prefer to encapsulate
-services as classes (call me old-school I guess?), and found Jest's ES6 class mocking to be a bit difficult.
-This of course is just my personal opinion :smiley:
+export const GreeterContext = createContext(null);
+
+export function useGreeter() {
+  const instance = useContext(Greeter);
+  if (!instance) {
+    throw new Error(`[useGreeter] Greeter was never provided`);
+  }
+  return instance;
+}
+```
+
+Then, in my application code I can provide Greeter at runtime, again as shown above:
+
+```jsx
+// App.js
+import React from "react";
+import Greeter, { GreeterContext } from "./greeter";
+import Greeting from "./Greeting";
+
+const greeter = new Greeter();
+export default function App() {
+  return (
+    <GreeterContext.Provider value={greeter}>
+      <Greeting />
+    </GreeterContext.Provider>
+  );
+}
+```
+
+> **NOTE**: In a real app, `Greeting` may be nested somewhere deep down in the component tree, while in this
+> example it may look like it would just be easier to pass it as a prop, in a real application you'd have to pass
+> it down an entire component tree, making this method more appealing (to me at least).
+
+Finally, I could use my custom hook in my `Greeting` component:
+
+```jsx
+// Greeting.js
+import React from "react";
+import { useGreeter } from "./greeter";
+
+export default function Greeter() {
+  const greeter = useGreeter();
+  return <h1>{greeter.greet()}</h1>;
+}
+```
+
+This not only makes it super easy for components to consume services, but once I started using it, I realized I also preferred providing service mocks in tests explicitly vs. using Jest's
+[module mocking](https://jestjs.io/docs/en/mock-functions#mocking-modules). I found that explicitly specifying the services my components rely upon made me less likely to
+mock out implementation details and ensure I drew clear boundaries around separation of concern.
+
+> I also prefer to encapsulate services as classes (call me old-school I guess?), and found Jest's ES6 class mocking to be a bit difficult. This of course is just my personal opinion :sweat_smile:
+
+However, once I started doing this with multiple services, e.g. `FooService`, `BarService`, `BazService`, I started to get into this slippery slope where not only was I writing a ton of boilerplate code for every service, but my code started looking more diagonal vs. vertical when declaring services.
+
+```jsx
+import FooService, { FooContext } from "./fooService";
+import BarService, { BarContext } from "./barService";
+import BazService, { BazContext } from "./bazService";
+
+const foo = new Foo();
+const bar = new Bar();
+const baz = new Baz();
+export default function App() {
+  <FooContext.Provider value={foo}>
+    <BarContext.Provider value={bar}>
+      <BazContext.Provider value={baz}>{/* ... */}</BazContext.Provider>
+    </BarContext.Provider>
+  </FooContext.Provider>;
+}
+```
+
+I wanted a way to generalize the concept of providing services via contexts and hooks in an easy and intuitive manner, and took inspiration from [Angular's dependency injection system](https://angular.io/guide/dependency-injection) to do so (but without the complexity that true DI comes with). This turned out to work well for my use cases, and hence `react-service-container` was born.
+
+With `react-service-container`, the above becomes:
+
+```jsx
+import FooService from "./fooService";
+import BarService from "./barService";
+import BazService from "./bazService";
+import { ServiceContainer } from "react-service-container";
+
+export default function App() {
+  <ServiceContainer providers={[FooService, BarService, BazService]}>
+    {/* ^_^ */}
+  </ServiceContainer>;
+}
+```
+
+Not to mention no more `Context` / hook definition boilerplate in your services.
 
 ## Installation
 
