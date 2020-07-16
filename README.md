@@ -195,6 +195,8 @@ export default function App() {
 
 Not to mention no more `Context` / hook definition boilerplate in your services.
 
+![MUCH BETTA!](https://i.imgur.com/DgcnE9v.gif)
+
 ## Installation
 
 ```
