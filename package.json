@@ -1,6 +1,6 @@
 {
   "name": "react-service-container",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A simple, robust, idiomatic service locator library for React applications",
   "repository": {
     "type": "git",
